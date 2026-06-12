@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Quadrant — System Playbook</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0a0a0a;
+    --white: #f5f3ee;
+    --gold: #c9a84c;
+    --gold-dim: #7a5e28;
+    --gold-light: #f0d48a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: rgba(201,168,76,0.2);
+    --border-dim: rgba(255,255,255,0.07);
+    --text-primary: #f5f3ee;
+    --text-secondary: #8a8680;
+    --text-muted: #4a4844;
+    --danger: #c0392b;
+    --success: #2e7d52;
+    --q1: #c9a84c;
+    --q2: #9b7e3a;
+    --q3: #6d5828;
+    --q4: #3f3218;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── COVER ── */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 60px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -200px; right: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cover-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .cover-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .cover-tag {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .cover-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 0 40px;
+  }
+
+  .cover-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .cover-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(64px, 10vw, 120px);
+    font-weight: 800;
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+    margin-bottom: 40px;
+  }
+
+  .cover-title span {
+    color: var(--gold);
+  }
+
+  .cover-sub {
+    font-size: 16px;
+    color: var(--text-secondary);
+    max-width: 520px;
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  .cover-bottom {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .cover-stat {
+    background: var(--black);
+    padding: 24px 28px;
+  }
+
+  .cover-stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .cover-stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── SECTIONS ── */
+  .section {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 80px 60px;
+    border-bottom: 1px solid var(--border-dim);
+  }
+
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--gold-dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 32px;
+    color: var(--text-primary);
+  }
+
+  .section-title span { color: var(--gold); }
+
+  p {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    font-weight: 300;
+  }
+
+  p strong {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  /* ── QUADRANT VISUAL ── */
+  .price-ladder {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin: 40px 0;
+  }
+
+  .ladder-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-dim);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .ladder-header span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .ladder-row {
+    display: grid;
+    grid-template-columns: 100px 1fr 80px 80px 80px;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-dim);
+    gap: 16px;
+  }
+
+  .ladder-row:last-child { border-bottom: none; }
+
+  .ladder-row.tp-row { background: rgba(46,125,82,0.08); }
+  .ladder-row.sl-row { background: rgba(192,57,43,0.06); }
+
+  .q-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .q-bar-wrap {
+    height: 4px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .q-bar { height: 4px; border-radius: 2px; }
+
+  .price-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: right;
+  }
+
+  .rr-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gold);
+    text-align: right;
+  }
+
+  /* ── SCENARIO TABLE ── */
+  .scenario-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 32px 0;
+    font-size: 13px;
+  }
+
+  .scenario-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-dim);
+    font-weight: 400;
+  }
+
+  .scenario-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-dim);
+    color: var(--text-secondary);
+    font-weight: 300;
+  }
+
+  .scenario-table tr:last-child td { border-bottom: none; }
+
+  .scenario-table td:first-child { color: var(--text-primary); font-weight: 400; }
+
+  .win { color: #5aab7a; }
+  .loss { color: #c0392b; }
+  .missed { color: var(--text-muted); font-style: italic; }
+
+  /* ── RISK GRID ── */
+  .risk-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border-dim);
+    border: 1px solid var(--border-dim);
+    margin: 32px 0;
+  }
+
+  .risk-cell {
+    background: var(--surface);
+    padding: 28px;
+  }
+
+  .risk-cell-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .risk-cell-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+
+  .risk-cell-body {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 300;
+    line-height: 1.6;
+  }
+
+  .risk-indicator {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  /* ── BUILD PHASES ── */
+  .phase {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 24px;
+    margin-bottom: 40px;
+    align-items: start;
+  }
+
+  .phase-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--border);
+    line-height: 1;
+    padding-top: 4px;
+  }
+
+  .phase-content {}
+
+  .phase-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+
+  .phase-body {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 300;
+    margin-bottom: 12px;
+  }
+
+  .phase-items {
+    list-style: none;
+    padding: 0;
+  }
+
+  .phase-items li {
+    font-size: 13px;
+    color: var(--text-muted);
+    padding: 5px 0;
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .phase-items li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--gold-dim);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── FORMULA BOX ── */
+  .formula {
+    background: var(--surface);
+    border-left: 2px solid var(--gold);
+    padding: 24px 28px;
+    margin: 32px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 2;
+    color: var(--text-secondary);
+  }
+
+  .formula .var { color: var(--gold); }
+  .formula .comment { color: var(--text-muted); font-size: 11px; }
+
+  /* ── CALLOUT ── */
+  .callout {
+    border: 1px solid var(--border);
+    padding: 28px 32px;
+    margin: 32px 0;
+    background: rgba(201,168,76,0.03);
+  }
+
+  .callout-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+
+  .callout p { margin: 0; color: var(--text-secondary); font-size: 14px; }
+
+  /* ── TECH STACK ── */
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border-dim);
+    border: 1px solid var(--border-dim);
+    margin: 32px 0;
+  }
+
+  .stack-cell {
+    background: var(--surface);
+    padding: 24px;
+  }
+
+  .stack-layer {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--gold-dim);
+    margin-bottom: 8px;
+  }
+
+  .stack-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+  }
+
+  .stack-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 300;
+    line-height: 1.5;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    padding: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border-dim);
+  }
+
+  .footer-left {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  .footer-right {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border-dim);
+    margin: 40px 0;
+  }
+
+  @media (max-width: 640px) {
+    .cover { padding: 32px; }
+    .cover-bottom { grid-template-columns: 1fr 1fr; }
+    .section { padding: 60px 32px; }
+    .risk-grid { grid-template-columns: 1fr; }
+    .stack-grid { grid-template-columns: 1fr; }
+    .ladder-row { grid-template-columns: 80px 1fr 60px 60px; }
+    .ladder-row .rr-val { display: none; }
+    .footer { flex-direction: column; gap: 16px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-top">
+    <div class="cover-logo">The Quadrant</div>
+    <div class="cover-tag">System Playbook v1.0</div>
+  </div>
+  <div class="cover-body">
+    <div class="cover-eyebrow">// copytrade amplification system</div>
+    <h1 class="cover-title">THE<br><span>QUAD</span><br>RANT</h1>
+    <p class="cover-sub">A systematic method for transforming a single trade signal into four staggered entries — each with a tighter stop loss, each targeting the same take profit, each running on a separate account.</p>
+  </div>
+  <div class="cover-bottom">
+    <div class="cover-stat">
+      <div class="cover-stat-num">4</div>
+      <div class="cover-stat-label">Accounts per signal</div>
+    </div>
+    <div class="cover-stat">
+      <div class="cover-stat-num">1:8+</div>
+      <div class="cover-stat-label">Minimum R:R on Q1</div>
+    </div>
+    <div class="cover-stat">
+      <div class="cover-stat-num">10%</div>
+      <div class="cover-stat-label">Max drawdown cap</div>
+    </div>
+    <div class="cover-stat">
+      <div class="cover-stat-num">0.5%</div>
+      <div class="cover-stat-label">Risk floor in drawdown</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 1: THE CONCEPT -->
+<div class="section">
+  <div class="section-num">// 01</div>
+  <h2 class="section-title">What is<br><span>The Quadrant</span></h2>
+
+  <p>The Quadrant is a copytrade amplification system. It takes a signal from a trusted trader — their entry, stop loss, and take profit — and rather than copying it as-is, it restructures the trade into four independent entries spread across four separate accounts.</p>
+
+  <p>The core idea is this: <strong>the SL region of any trade is not a wall, it's a zone.</strong> That zone has depth. Price doesn't always hit SL directly — it often probes, dips, and reverses. The Quadrant exploits that depth by placing staggered limit entries at each quarter of the SL zone, turning one signal into up to four positions with dramatically improved risk-to-reward ratios.</p>
+
+  <p>Every account targets the <strong>same take profit</strong>. Only the entries and stop losses differ. The deeper price dips before reversing, the fewer accounts get filled — but the ones that do carry outsized R:R. Missed entries are not losses. They are simply unfilled orders.</p>
+
+  <div class="callout">
+    <div class="callout-label">// Core insight</div>
+    <p>A trader with a 1:2 setup and a 60% win rate is profitable. The same signal, restructured through The Quadrant, gives you 1:8, 1:9, 1:10, and 1:11 across four accounts. You can be profitable at a win rate a fraction of theirs.</p>
+  </div>
+</div>
+
+
+<!-- SECTION 2: THE LOGIC -->
+<div class="section">
+  <div class="section-num">// 02</div>
+  <h2 class="section-title">The <span>Logic</span></h2>
+
+  <p>Given any signal, three values are extracted: <strong>Entry (E)</strong>, <strong>Stop Loss (SL)</strong>, and <strong>Take Profit (TP)</strong>. The distance from entry to stop loss is the SL range. This range is divided into four equal zones.</p>
+
+  <div class="formula">
+    <span class="var">zone_size</span> = (Entry − SL) ÷ 4<br><br>
+    <span class="var">Q1_entry</span> = Entry &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// original signal entry</span><br>
+    <span class="var">Q1_sl</span> &nbsp;&nbsp;&nbsp;= Entry − zone_size<br><br>
+    <span class="var">Q2_entry</span> = Q1_sl &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// Q2 enters where Q1's SL is</span><br>
+    <span class="var">Q2_sl</span> &nbsp;&nbsp;&nbsp;= Q2_entry − zone_size<br><br>
+    <span class="var">Q3_entry</span> = Q2_sl<br>
+    <span class="var">Q3_sl</span> &nbsp;&nbsp;&nbsp;= Q3_entry − zone_size<br><br>
+    <span class="var">Q4_entry</span> = Q3_sl<br>
+    <span class="var">Q4_sl</span> &nbsp;&nbsp;&nbsp;= Original SL &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// Q4 holds the full stop</span><br><br>
+    <span class="comment">// All quadrants share the same TP</span><br>
+    <span class="var">Q1_tp = Q2_tp = Q3_tp = Q4_tp</span> = TP
+  </div>
+
+  <p>Because every quadrant has the same zone size as its risk, but each successive quadrant is closer to the TP, the reward distance grows while risk stays constant. This is why R:R improves with each deeper quadrant.</p>
+
+  <p><strong>Live example — GBPJPY 15m:</strong> Entry 214.661, SL 214.588, TP 215.392. Zone size = 0.073 ÷ 4 = 0.01825.</p>
+
+  <div class="price-ladder">
+    <div class="ladder-header">
+      <span>GBPJPY · 15m · Long</span>
+      <span>TP: 215.392</span>
+    </div>
+
+    <div class="ladder-row tp-row">
+      <div class="q-label" style="color:#5aab7a;">— TP</div>
+      <div class="q-bar-wrap"><div class="q-bar" style="background:#2e7d52; width:100%;"></div></div>
+      <div class="price-val" style="color:#5aab7a;">215.392</div>
+      <div class="price-val"></div>
+      <div class="rr-val" style="color:#5aab7a;">TARGET</div>
+    </div>
+
+    <div class="ladder-row">
+      <div class="q-label" style="color:var(--q1);">Q1</div>
+      <div class="q-bar-wrap"><div class="q-bar" style="background:var(--q1); width:100%;"></div></div>
+      <div class="price-val">214.661</div>
+      <div class="price-val">→ 214.643</div>
+      <div class="rr-val">1:41</div>
+    </div>
+
+    <div class="ladder-row">
+      <div class="q-label" style="color:#b8924a;">Q2</div>
+      <div class="q-bar-wrap"><div class="q-bar" style="background:#b8924a; width:75%;"></div></div>
+      <div class="price-val">214.643</div>
+      <div class="price-val">→ 214.625</div>
+      <div class="rr-val">1:42</div>
+    </div>
+
+    <div class="ladder-row">
+      <div class="q-label" style="color:#8a6d38;">Q3</div>
+      <div class="q-bar-wrap"><div class="q-bar" style="background:#8a6d38; width:50%;"></div></div>
+      <div class="price-val">214.625</div>
+      <div class="price-val">→ 214.607</div>
+      <div class="rr-val">1:43</div>
+    </div>
+
+    <div class="ladder-row">
+      <div class="q-label" style="color:#5c4826;">Q4</div>
+      <div class="q-bar-wrap"><div class="q-bar" style="background:#5c4826; width:25%;"></div></div>
+      <div class="price-val">214.607</div>
+      <div class="price-val">→ 214.588</div>
+      <div class="rr-val">1:44</div>
+    </div>
+
+    <div class="ladder-row sl-row">
+      <div class="q-label" style="color:var(--danger);">— SL</div>
+      <div class="q-bar-wrap"></div>
+      <div class="price-val" style="color:var(--danger);">214.588</div>
+      <div class="price-val"></div>
+      <div class="rr-val" style="color:var(--danger);">FLOOR</div>
+    </div>
+  </div>
+
+  <p>The original signal is already a strong 1:10 setup. Through The Quadrant it becomes 1:41, 1:42, 1:43, 1:44. Each account risks the same absolute amount — but collects exponentially more reward per unit of risk.</p>
+</div>
+
+
+<!-- SECTION 3: WHAT ACTUALLY HAPPENS -->
+<div class="section">
+  <div class="section-num">// 03</div>
+  <h2 class="section-title">What happens<br><span>on each trade</span></h2>
+
+  <p>Price moves one of five ways after a signal is issued. Here is how The Quadrant responds to each outcome:</p>
+
+  <table class="scenario-table">
+    <thead>
+      <tr>
+        <th>Price behaviour</th>
+        <th>Q1</th>
+        <th>Q2</th>
+        <th>Q3</th>
+        <th>Q4</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Goes straight to TP from entry</td>
+        <td class="win">+41R</td>
+        <td class="missed">no fill</td>
+        <td class="missed">no fill</td>
+        <td class="missed">no fill</td>
+      </tr>
+      <tr>
+        <td>Dips to Q2 zone, then to TP</td>
+        <td class="loss">−1R</td>
+        <td class="win">+42R</td>
+        <td class="missed">no fill</td>
+        <td class="missed">no fill</td>
+      </tr>
+      <tr>
+        <td>Dips to Q3 zone, then to TP</td>
+        <td class="loss">−1R</td>
+        <td class="loss">−1R</td>
+        <td class="win">+43R</td>
+        <td class="missed">no fill</td>
+      </tr>
+      <tr>
+        <td>Dips to Q4 zone, then to TP</td>
+        <td class="loss">−1R</td>
+        <td class="loss">−1R</td>
+        <td class="loss">−1R</td>
+        <td class="win">+44R</td>
+      </tr>
+      <tr>
+        <td>Blows through full SL</td>
+        <td class="loss">−1R</td>
+        <td class="loss">−1R</td>
+        <td class="loss">−1R</td>
+        <td class="loss">−1R</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>In the worst case — full stop out on all four accounts — you lose 4R total. In any winning scenario, a single filled account more than compensates. One Q1 win returns 41R, covering 41 full losses. The mathematics of this system are structurally biased in your favour as long as your signal source maintains any meaningful edge.</p>
+
+  <div class="callout">
+    <div class="callout-label">// Break-even win rate on Q1</div>
+    <p>At 1:41 R:R, Q1 breaks even at a win rate of just 2.4%. Your friend's signals almost certainly win more than 2.4% of the time. Every percentage above that is pure edge compounding across four accounts.</p>
+  </div>
+</div>
+
+
+<!-- SECTION 4: RISK MANAGEMENT -->
+<div class="section">
+  <div class="section-num">// 04</div>
+  <h2 class="section-title">Risk<br><span>Management</span></h2>
+
+  <p>The Quadrant is designed primarily for prop firm accounts with a 10% maximum drawdown limit. The risk sizing layer ensures you never approach that ceiling while staying active and compounding when healthy.</p>
+
+  <div class="risk-grid">
+    <div class="risk-cell">
+      <div class="risk-cell-label">// Green mode</div>
+      <div class="risk-cell-title"><span class="risk-indicator" style="background:#2e7d52;"></span>At or above breakeven</div>
+      <div class="risk-cell-body">Risk 1% of account per trade on each account. Full exposure. You are operating from a position of strength — let the system work at full capacity.</div>
+    </div>
+    <div class="risk-cell">
+      <div class="risk-cell-label">// Recovery mode</div>
+      <div class="risk-cell-title"><span class="risk-indicator" style="background:#c9a84c;"></span>In drawdown</div>
+      <div class="risk-cell-body">Drop to 0.5% per trade per account. Conserve capital. Smaller size means the same R:R ratios still recover the account — just more slowly and safely.</div>
+    </div>
+    <div class="risk-cell">
+      <div class="risk-cell-label">// Hard floor</div>
+      <div class="risk-cell-title"><span class="risk-indicator" style="background:#c0392b;"></span>10% drawdown limit</div>
+      <div class="risk-cell-body">This is the prop firm's hard limit. The risk sizing tiers above are designed so this ceiling is never approached under normal trading conditions.</div>
+    </div>
+    <div class="risk-cell">
+      <div class="risk-cell-label">// Account structure</div>
+      <div class="risk-cell-title"><span class="risk-indicator" style="background:#378add;"></span>4 independent accounts</div>
+      <div class="risk-cell-body">Each quadrant lives on a separate account. A loss on Q1 does not affect Q2's drawdown. Accounts are isolated — a bad run on one does not contaminate the others.</div>
+    </div>
+  </div>
+
+  <p>The isolation of accounts is not just structural convenience — it is a risk management feature. If Q1 hits a rough streak and enters recovery mode at 0.5%, Q2, Q3, and Q4 may still be in green mode at 1%. The system self-balances.</p>
+
+  <p>With four accounts each risking 1% on a signal, the maximum combined exposure per signal is <strong>4% across all accounts</strong>. In the best-case scenario where all four fill and TP is hit, the return is enormous. In the worst case, it is a controlled 4R loss — manageable, recoverable, and absorbed by the R:R ratios over any reasonable sample of trades.</p>
+</div>
+
+
+<!-- SECTION 5: THE BUILD -->
+<div class="section">
+  <div class="section-num">// 05</div>
+  <h2 class="section-title">How to<br><span>Build It</span></h2>
+
+  <p>The Quadrant is built in three phases. Each phase is independently functional — you can start with Phase 1 and generate real value immediately while building toward the full system.</p>
+
+  <div class="phase">
+    <div class="phase-num">01</div>
+    <div class="phase-content">
+      <div class="phase-title">The Calculator</div>
+      <div class="phase-body">A web app where you input Entry, SL, and TP manually. It instantly computes all four quadrant levels — entry prices, stop losses, and R:R for each account. This is the core engine everything else is built on.</div>
+      <ul class="phase-items">
+        <li>Input: Entry, SL, TP, account balance, risk %</li>
+        <li>Output: Q1–Q4 entry prices and SL levels</li>
+        <li>Output: R:R ratio per quadrant</li>
+        <li>Output: Position size in lots/units per account</li>
+        <li>Output: Dollar value at risk per account</li>
+        <li>Risk mode toggle: green (1%) vs recovery (0.5%)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num">02</div>
+    <div class="phase-content">
+      <div class="phase-title">The Image Extractor</div>
+      <div class="phase-body">When your signal source shares a chart screenshot, you upload it directly to The Quadrant app. AI vision reads the price levels from the chart — entry line, SL zone, TP zone — and feeds them automatically into the calculator. No manual input.</div>
+      <ul class="phase-items">
+        <li>Upload chart screenshot from Telegram, WhatsApp, or anywhere</li>
+        <li>Claude vision API identifies entry, SL, and TP price levels</li>
+        <li>Handles annotated charts, shaded zones, and horizontal lines</li>
+        <li>Confidence score shown — flag ambiguous images for manual review</li>
+        <li>Works best when price axis is visible on right side of chart</li>
+        <li>Auto-detects pair name and timeframe where readable</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num">03</div>
+    <div class="phase-content">
+      <div class="phase-title">The Order Manager</div>
+      <div class="phase-body">The full system. Connects to your broker accounts via API. When a signal is processed, it places all four limit orders automatically across all four accounts — correct size, correct entry, correct SL and TP per quadrant. Manages open trades and tracks performance.</div>
+      <ul class="phase-items">
+        <li>Broker API integration (MetaTrader 5, cTrader, or broker REST API)</li>
+        <li>One-click or fully automated order placement across 4 accounts</li>
+        <li>Real-time position tracking per account</li>
+        <li>Auto risk mode detection — switches to recovery at drawdown threshold</li>
+        <li>Trade journal with per-quadrant performance breakdown</li>
+        <li>TradingView deep links for chart verification before execution</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 6: TECH STACK -->
+<div class="section">
+  <div class="section-num">// 06</div>
+  <h2 class="section-title">Tech <span>Stack</span></h2>
+
+  <p>Recommended stack for building The Quadrant from Phase 1 through Phase 3.</p>
+
+  <div class="stack-grid">
+    <div class="stack-cell">
+      <div class="stack-layer">// Frontend</div>
+      <div class="stack-name">React + Vite</div>
+      <div class="stack-desc">Fast, component-based UI. The calculator and image uploader are self-contained components that grow into the full app.</div>
+    </div>
+    <div class="stack-cell">
+      <div class="stack-layer">// AI Vision</div>
+      <div class="stack-name">Claude API</div>
+      <div class="stack-desc">Claude's vision capability reads chart screenshots and extracts price levels. Handles annotated TradingView charts reliably.</div>
+    </div>
+    <div class="stack-cell">
+      <div class="stack-layer">// Backend</div>
+      <div class="stack-name">Node.js + Express</div>
+      <div class="stack-desc">Lightweight API layer for handling image uploads, Claude API calls, and eventual broker integrations.</div>
+    </div>
+    <div class="stack-cell">
+      <div class="stack-layer">// Database</div>
+      <div class="stack-name">Supabase</div>
+      <div class="stack-desc">Store signals, quadrant levels, trade outcomes, and account states. Real-time updates for live position tracking.</div>
+    </div>
+    <div class="stack-cell">
+      <div class="stack-layer">// Broker Integration</div>
+      <div class="stack-name">MT5 / cTrader API</div>
+      <div class="stack-desc">MetaTrader 5 has a Python API. cTrader has an Open API. Both support placing limit orders programmatically across multiple accounts.</div>
+    </div>
+    <div class="stack-cell">
+      <div class="stack-layer">// Hosting</div>
+      <div class="stack-name">Vercel + Railway</div>
+      <div class="stack-desc">Frontend on Vercel (zero config). Backend and any broker bridge on Railway for persistent connections.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- SECTION 7: RULES OF THE SYSTEM -->
+<div class="section">
+  <div class="section-num">// 07</div>
+  <h2 class="section-title">Rules of<br><span>The Quadrant</span></h2>
+
+  <p>These are the operating principles. They are not suggestions — they are what makes the system work over time.</p>
+
+  <div class="phase">
+    <div class="phase-num" style="color:var(--gold-dim);">I</div>
+    <div class="phase-content">
+      <div class="phase-title">Never move a SL</div>
+      <div class="phase-body">Each quadrant's SL is mathematically precise. Moving it invalidates the R:R calculation and breaks the logic of the system. Let the trade work or let it stop out.</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num" style="color:var(--gold-dim);">II</div>
+    <div class="phase-content">
+      <div class="phase-title">Never skip a quadrant</div>
+      <div class="phase-body">The system works because all four positions are placed. Selectively skipping quadrants based on feeling removes the statistical edge. Place all four, every time.</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num" style="color:var(--gold-dim);">III</div>
+    <div class="phase-content">
+      <div class="phase-title">Missed entries are not losses</div>
+      <div class="phase-body">If price goes straight to TP without filling Q2, Q3, Q4 — that is a good outcome. Do not chase unfilled orders. A missed entry costs nothing.</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num" style="color:var(--gold-dim);">IV</div>
+    <div class="phase-content">
+      <div class="phase-title">Respect the risk tiers</div>
+      <div class="phase-body">1% in green mode, 0.5% in recovery. Never increase size chasing losses. The R:R ratios do the heavy lifting — your job is to stay in the game long enough for them to compound.</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-num" style="color:var(--gold-dim);">V</div>
+    <div class="phase-content">
+      <div class="phase-title">Only copy traders with a verified edge</div>
+      <div class="phase-body">The Quadrant amplifies an existing edge — it does not create one from nothing. The signal source must have a documented win rate over a meaningful sample size. Vet your sources before running the system on their signals.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-left">The Quadrant</div>
+  <div class="footer-right">System Playbook v1.0 &nbsp;·&nbsp; Confidential</div>
+</div>
+
+</body>
+</html>

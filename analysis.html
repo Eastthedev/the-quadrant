@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Quadrant — Win Rate Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0a0a0a;
+    --gold: #c9a84c;
+    --gold-dim: rgba(201,168,76,0.12);
+    --gold-border: rgba(201,168,76,0.3);
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: rgba(255,255,255,0.07);
+    --text: #f0ede6;
+    --muted: #5a5650;
+    --secondary: #8a8278;
+    --success: #4caf7d;
+    --success-dim: rgba(76,175,125,0.08);
+    --danger: #e05555;
+    --danger-dim: rgba(224,85,85,0.06);
+    --blue: #4a9eda;
+  }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* HEADER */
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 18px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .header-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--gold);
+    letter-spacing: -0.02em;
+  }
+  .header-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* HERO */
+  .hero {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 64px 48px 40px;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+    color: var(--text);
+  }
+  .hero-title span { color: var(--gold); }
+  .hero-sub {
+    font-size: 16px;
+    color: var(--secondary);
+    font-weight: 300;
+    max-width: 580px;
+    line-height: 1.65;
+  }
+
+  /* STAT STRIP */
+  .stat-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-bottom: 1px solid var(--border);
+  }
+  .stat-cell {
+    padding: 28px 32px;
+    border-right: 1px solid var(--border);
+  }
+  .stat-cell:last-child { border-right: none; }
+  .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .stat-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--gold);
+  }
+  .stat-val.green { color: var(--success); }
+  .stat-val.white { color: var(--text); }
+  .stat-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-weight: 300;
+  }
+
+  /* BODY */
+  .body {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 48px 80px;
+  }
+
+  /* SECTION */
+  .section {
+    padding: 52px 0 0;
+  }
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    opacity: 0.6;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+    color: var(--text);
+  }
+  .section-title span { color: var(--gold); }
+
+  p {
+    color: var(--secondary);
+    font-weight: 300;
+    margin-bottom: 16px;
+    font-size: 14px;
+    line-height: 1.75;
+  }
+  p strong { color: var(--text); font-weight: 500; }
+
+  /* COMPARISON BLOCK */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 28px 0;
+  }
+  .compare-cell {
+    background: var(--surface);
+    padding: 28px;
+  }
+  .compare-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .compare-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+  .compare-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .compare-row:last-child { border-bottom: none; }
+  .compare-row-label { color: var(--muted); font-weight: 300; }
+  .compare-row-val { color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+  .compare-row-val.gold { color: var(--gold); }
+  .compare-row-val.green { color: var(--success); }
+  .compare-row-val.danger { color: var(--danger); }
+
+  /* QUADRANT TABLE */
+  .q-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 28px 0;
+    font-size: 13px;
+  }
+  .q-table thead tr {
+    border-bottom: 1px solid var(--border);
+  }
+  .q-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 400;
+  }
+  .q-table td {
+    padding: 13px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--secondary);
+    font-weight: 300;
+  }
+  .q-table tr:last-child td { border-bottom: none; }
+  .q-table td:first-child {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+  }
+  .q-table td.gold { color: var(--gold); font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .q-table td.green { color: var(--success); font-family: 'JetBrains Mono', monospace; }
+  .q-table td.danger { color: var(--danger); font-family: 'JetBrains Mono', monospace; }
+  .q-table td.white { color: var(--text); font-family: 'JetBrains Mono', monospace; }
+  .q-table tr.q1 td:first-child { color: #c9a84c; }
+  .q-table tr.q2 td:first-child { color: #b48c3c; }
+  .q-table tr.q3 td:first-child { color: #8c6428; }
+  .q-table tr.q4 td:first-child { color: #5a3c14; }
+
+  /* CALLOUT */
+  .callout {
+    border: 1px solid var(--gold-border);
+    background: var(--gold-dim);
+    border-radius: 3px;
+    padding: 22px 26px;
+    margin: 28px 0;
+  }
+  .callout-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .callout p { color: var(--secondary); margin: 0; font-size: 13px; }
+  .callout p strong { color: var(--text); }
+
+  /* EV TABLE */
+  .ev-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 28px 0;
+  }
+  .ev-header {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+  }
+  .ev-header span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .ev-row {
+    display: grid;
+    grid-template-columns: 160px 1fr 1fr 1fr;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    gap: 12px;
+  }
+  .ev-row:last-child { border-bottom: none; }
+  .ev-row-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--secondary);
+  }
+  .ev-row-label.highlight { color: var(--text); font-weight: 500; }
+  .ev-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    text-align: right;
+  }
+  .ev-bar-wrap {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    flex: 1;
+  }
+  .ev-bar { height: 4px; border-radius: 2px; }
+
+  /* FORMULA */
+  .formula {
+    background: var(--surface2);
+    border-left: 2px solid var(--gold);
+    padding: 20px 24px;
+    margin: 24px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 2;
+    color: var(--secondary);
+    border-radius: 0 3px 3px 0;
+  }
+  .formula .var { color: var(--gold); }
+  .formula .result { color: var(--success); font-weight: 500; }
+  .formula .comment { color: var(--muted); font-size: 10px; }
+
+  /* WIN RATE VISUAL */
+  .wr-visual {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px;
+    margin: 28px 0;
+  }
+  .wr-bar-row {
+    display: grid;
+    grid-template-columns: 130px 1fr 60px;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .wr-bar-row:last-child { margin-bottom: 0; }
+  .wr-bar-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--secondary);
+  }
+  .wr-bar-track {
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .wr-bar-fill { height: 8px; border-radius: 4px; transition: width 0.5s ease; }
+  .wr-bar-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: right;
+  }
+
+  /* DIVIDER */
+  hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+  /* VERDICT */
+  .verdict {
+    background: linear-gradient(135deg, rgba(201,168,76,0.06) 0%, rgba(201,168,76,0.02) 100%);
+    border: 1px solid var(--gold-border);
+    border-radius: 4px;
+    padding: 36px;
+    margin: 36px 0;
+  }
+  .verdict-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+  .verdict-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+  .verdict p { color: var(--secondary); font-size: 14px; margin-bottom: 12px; }
+  .verdict p:last-child { margin-bottom: 0; }
+
+  /* FOOTER */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-left {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gold);
+  }
+  .footer-right {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 640px) {
+    .header, .hero, .body, .footer { padding-left: 20px; padding-right: 20px; }
+    .stat-strip { grid-template-columns: 1fr 1fr; }
+    .compare { grid-template-columns: 1fr; }
+    .ev-row { grid-template-columns: 120px 1fr 50px; }
+    .wr-bar-row { grid-template-columns: 100px 1fr 50px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">THE QUADRANT</div>
+  <div class="header-tag">Win Rate & R:R Analysis</div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">// scenario analysis</div>
+  <h1 class="hero-title">What happens to your<br><span>win rate</span> at 5R TP?</h1>
+  <p class="hero-sub">Your signal source hits 1:10 at 60% win rate. You apply The Quadrant and cap TP at 5R of the original trade. Here is exactly what your numbers look like.</p>
+</div>
+
+<!-- STAT STRIP -->
+<div class="stat-strip">
+  <div class="stat-cell">
+    <div class="stat-label">Your TP target</div>
+    <div class="stat-val">5R</div>
+    <div class="stat-sub">of original trade</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-label">Estimated win rate</div>
+    <div class="stat-val green">70–80%</div>
+    <div class="stat-sub">vs original 60%</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-label">Q1 R:R after split</div>
+    <div class="stat-val">1:20</div>
+    <div class="stat-sub">vs original 1:5</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-label">Break-even win rate on Q1</div>
+    <div class="stat-val white">4.8%</div>
+    <div class="stat-sub">you're at 70%+</div>
+  </div>
+</div>
+
+<!-- BODY -->
+<div class="body">
+
+  <!-- SECTION 1 -->
+  <div class="section">
+    <div class="section-num">// 01</div>
+    <h2 class="section-title">Why your win rate <span>goes up</span></h2>
+
+    <p>The original trader targets 10R and wins 60% of the time. That means 60% of trades travel the full distance from entry to 10R. The critical insight: <strong>every winning trade passes through 5R on its way to 10R.</strong></p>
+
+    <p>So when you cut TP to 5R, you capture all of those 60% winners — plus you additionally capture trades that would have reversed between 5R and 10R, that the original trader counted as losses. Those trades reached 5R but didn't reach 10R. For you, they're wins.</p>
+
+    <p>Conservatively estimating that another <strong>10–20% of trades</strong> fall into that "reached 5R but not 10R" bucket, your win rate at 5R TP moves to roughly <strong>70–80%</strong>.</p>
+
+    <div class="wr-visual">
+      <div class="wr-bar-row">
+        <div class="wr-bar-label">Original (10R TP)</div>
+        <div class="wr-bar-track"><div class="wr-bar-fill" style="background:#c9a84c; width:60%;"></div></div>
+        <div class="wr-bar-val" style="color:#c9a84c;">60%</div>
+      </div>
+      <div class="wr-bar-row">
+        <div class="wr-bar-label">Your TP (5R)</div>
+        <div class="wr-bar-track"><div class="wr-bar-fill" style="background:#4caf7d; width:75%;"></div></div>
+        <div class="wr-bar-val" style="color:#4caf7d;">~75%</div>
+      </div>
+      <div class="wr-bar-row">
+        <div class="wr-bar-label">Break-even Q1</div>
+        <div class="wr-bar-track"><div class="wr-bar-fill" style="background:#4a9eda; width:4.8%;"></div></div>
+        <div class="wr-bar-val" style="color:#4a9eda;">4.8%</div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">// key insight</div>
+      <p>You are not taking a worse version of the same trade. You are taking a <strong>higher probability trade at a lower TP</strong>, then using The Quadrant to restore and exceed the R:R you gave up by targeting 5R instead of 10R.</p>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- SECTION 2 -->
+  <div class="section">
+    <div class="section-num">// 02</div>
+    <h2 class="section-title">The Quadrant levels at <span>5R TP</span></h2>
+
+    <p>Using concrete numbers. Entry = 100, full SL = 90, so SL distance = 10 pips. Original TP at 10R = 200. Your TP at 5R = 150. Zone size = 10 ÷ 4 = <strong>2.5 pips per quadrant.</strong></p>
+
+    <table class="q-table">
+      <thead>
+        <tr>
+          <th>Quadrant</th>
+          <th>Entry</th>
+          <th>Stop Loss</th>
+          <th>Take Profit</th>
+          <th>Risk</th>
+          <th>Reward</th>
+          <th>R:R</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="q1">
+          <td>Q1</td>
+          <td class="white">100.0</td>
+          <td class="danger">97.5</td>
+          <td class="green">150.0</td>
+          <td>2.5</td>
+          <td>50.0</td>
+          <td class="gold">1:20</td>
+        </tr>
+        <tr class="q2">
+          <td>Q2</td>
+          <td class="white">97.5</td>
+          <td class="danger">95.0</td>
+          <td class="green">150.0</td>
+          <td>2.5</td>
+          <td>52.5</td>
+          <td class="gold">1:21</td>
+        </tr>
+        <tr class="q3">
+          <td>Q3</td>
+          <td class="white">95.0</td>
+          <td class="danger">92.5</td>
+          <td class="green">150.0</td>
+          <td>2.5</td>
+          <td>55.0</td>
+          <td class="gold">1:22</td>
+        </tr>
+        <tr class="q4">
+          <td>Q4</td>
+          <td class="white">92.5</td>
+          <td class="danger">90.0</td>
+          <td class="green">150.0</td>
+          <td>2.5</td>
+          <td>57.5</td>
+          <td class="gold">1:23</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Notice what happened. By capping at 5R instead of 10R, you didn't reduce your R:R — you <strong>doubled it</strong>. The original trade was 1:10. Your Q1 is 1:20. The quadrant structure more than compensates for the lower TP target because zone size stays the same while the reward distance to your 5R TP is still enormous relative to that zone.</p>
+  </div>
+
+  <hr>
+
+  <!-- SECTION 3 -->
+  <div class="section">
+    <div class="section-num">// 03</div>
+    <h2 class="section-title">Expected value <span>comparison</span></h2>
+
+    <p>EV = (Win rate × Reward) − (Loss rate × Risk). Comparing the original trader's setup against your Q1 at 5R TP, using the same 1R unit risk.</p>
+
+    <div class="compare">
+      <div class="compare-cell">
+        <div class="compare-label">// original trader</div>
+        <div class="compare-title">1:10 · 60% win rate</div>
+        <div class="compare-row"><span class="compare-row-label">Win rate</span><span class="compare-row-val green">60%</span></div>
+        <div class="compare-row"><span class="compare-row-label">Loss rate</span><span class="compare-row-val danger">40%</span></div>
+        <div class="compare-row"><span class="compare-row-label">R:R</span><span class="compare-row-val">1:10</span></div>
+        <div class="compare-row"><span class="compare-row-label">Wins contribute</span><span class="compare-row-val gold">+6.0R</span></div>
+        <div class="compare-row"><span class="compare-row-label">Losses cost</span><span class="compare-row-val danger">−0.4R</span></div>
+        <div class="compare-row"><span class="compare-row-label">EV per trade</span><span class="compare-row-val gold">+5.6R</span></div>
+      </div>
+      <div class="compare-cell">
+        <div class="compare-label">// your Q1 at 5R TP</div>
+        <div class="compare-title">1:20 · ~75% win rate</div>
+        <div class="compare-row"><span class="compare-row-label">Win rate</span><span class="compare-row-val green">~75%</span></div>
+        <div class="compare-row"><span class="compare-row-label">Loss rate</span><span class="compare-row-val danger">~25%</span></div>
+        <div class="compare-row"><span class="compare-row-label">R:R</span><span class="compare-row-val">1:20</span></div>
+        <div class="compare-row"><span class="compare-row-label">Wins contribute</span><span class="compare-row-val gold">+15.0R</span></div>
+        <div class="compare-row"><span class="compare-row-label">Losses cost</span><span class="compare-row-val danger">−0.25R</span></div>
+        <div class="compare-row"><span class="compare-row-label">EV per trade</span><span class="compare-row-val gold">+14.75R</span></div>
+      </div>
+    </div>
+
+    <p>Your Q1 alone produces <strong>2.6× the expected value</strong> of the original trader's setup — per trade, per unit of risk. And that's just one of your four accounts. Across all four quadrants, combined EV per signal is substantially higher still.</p>
+
+    <div class="formula">
+      <span class="comment">// Original trader EV</span><br>
+      (0.60 × 10R) − (0.40 × 1R) = 6.0 − 0.4 = <span class="result">+5.6R</span><br><br>
+      <span class="comment">// Your Q1 EV at 5R TP (conservative 75% win rate)</span><br>
+      (0.75 × 20R) − (0.25 × 1R) = 15.0 − 0.25 = <span class="result">+14.75R</span><br><br>
+      <span class="comment">// Even at a pessimistic 30% win rate on Q1</span><br>
+      (0.30 × 20R) − (0.70 × 1R) = 6.0 − 0.7 = <span class="result">+5.3R</span> &nbsp;<span class="comment">// still near-matching original</span>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">// the buffer</div>
+      <p>At 1:20 R:R, Q1 breaks even at a win rate of <strong>4.8%</strong>. You are operating at ~75% — a <strong>15× buffer above break-even</strong>. Your edge would have to collapse catastrophically before Q1 stops being profitable. The original trader at 1:10 needs 9.1% win rate to break even — a smaller but still comfortable buffer. Your system is structurally more resilient.</p>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- SECTION 4 -->
+  <div class="section">
+    <div class="section-num">// 04</div>
+    <h2 class="section-title">Win rate per quadrant — <span>what changes</span></h2>
+
+    <p>Q1 fills immediately at the original entry. Its win rate is your full ~75%. But Q2, Q3, and Q4 only fill if price dips into their zone first — meaning they fill on deeper pullbacks. Two things happen when a quadrant fills deeper:</p>
+
+    <p><strong>1. Fewer fills.</strong> Not every trade will pull back to Q4. Some go straight from Q1 to TP. Deeper quadrants fill less often — but when they do, the entry is structurally better.</p>
+
+    <p><strong>2. Higher win rate when filled.</strong> A trade that dips to Q3 before reversing strongly toward TP is exhibiting deeper accumulation. That kind of price behavior — deep sweep, sharp reversal — tends to follow through to target more reliably than a trade that barely dips at all.</p>
+
+    <div class="wr-visual">
+      <div class="wr-bar-row">
+        <div class="wr-bar-label">Q1 win rate</div>
+        <div class="wr-bar-track"><div class="wr-bar-fill" style="background:#c9a84c; width:75%;"></div></div>
+        <div class="wr-bar-val" style="color:#c9a84c;">~75%</div>
+      </div>
+      <div class="wr-bar-row">
+        <div class="wr-bar-label">Q2 win rate</div>
+        <div class="wr-bar-track"><div class="wr-bar-fill" style="background:#b48c3c; width:78%;"></div></div>
+        <div class="wr-bar-val" style="color:#b48c3c;">~78%</div>
+      </div>
+      <div class="wr-bar-row">
+        <div class="wr-bar-label">Q3 win rate</div>
+        <div class="wr-bar-track"><div class="wr-bar-fill" style="background:#8c6428; width:80%;"></div></div>
+        <div class="wr-bar-val" style="color:#8c6428;">~80%</div>
+      </div>
+      <div class="wr-bar-row">
+        <div class="wr-bar-label">Q4 win rate</div>
+        <div class="wr-bar-track"><div class="wr-bar-fill" style="background:#5a3c14; width:82%;"></div></div>
+        <div class="wr-bar-val" style="color:#5a3c14;">~82%</div>
+      </div>
+    </div>
+
+    <p style="font-size:12px; color: var(--muted);">Note: deeper quadrant win rates are estimates based on price behavior principles. Actual rates depend on the signal source and market conditions. Track your own data to calibrate over time.</p>
+  </div>
+
+  <hr>
+
+  <!-- SECTION 5 -->
+  <div class="section">
+    <div class="section-num">// 05</div>
+    <h2 class="section-title">The worst case <span>scenario</span></h2>
+
+    <p>All four quadrants fill and all four get stopped out. This is the full loss scenario — price sweeps through the entire SL zone without reversing. Total loss = 4R across four accounts.</p>
+
+    <p>At a 75% win rate, this full stop-out happens roughly <strong>25% of trades on Q1</strong> and decreasingly less on deeper quadrants. But even if all four fill and all four stop out on the same trade — one Q1 win returning 20R covers <strong>five complete wipeouts</strong> with R to spare.</p>
+
+    <div class="formula">
+      <span class="comment">// Worst case: all 4 accounts stopped out</span><br>
+      Total loss = <span class="var">−4R</span><br><br>
+      <span class="comment">// One Q1 win covers</span><br>
+      20R ÷ 4R = <span class="result">5 full wipeouts</span><br><br>
+      <span class="comment">// Required win rate to break even across all 4 accounts</span><br>
+      1 ÷ (1 + 20) = <span class="result">4.8%</span> &nbsp;<span class="comment">// you're at ~75%</span>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- VERDICT -->
+  <div class="verdict">
+    <div class="verdict-label">// bottom line</div>
+    <div class="verdict-title">You've built a structurally superior system</div>
+    <p>The original trader needs a 60% win rate to make their 1:10 setup work. You need <strong>4.8%</strong> to break even on Q1 alone — and you're sitting at roughly 75%. That gap between your actual win rate and your break-even rate is your <strong>margin of safety</strong>. It's enormous.</p>
+    <p>Cutting TP to 5R doesn't weaken the trade. It raises your win rate, and The Quadrant structure converts that 5R target into 1:20 through 1:23 R:R across your four accounts. You've taken someone else's good system and built a mathematically superior version of it on top.</p>
+    <p><strong>The only variable you don't control is the signal quality.</strong> Everything else — the R:R amplification, the win rate improvement, the risk management — is structural and systematic. Vet your signal sources carefully. The system will handle everything else.</p>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-left">The Quadrant</div>
+  <div class="footer-right">Win Rate Analysis · Confidential</div>
+</div>
+
+</body>
+</html>
