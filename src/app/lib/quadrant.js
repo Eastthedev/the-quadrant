@@ -1,14 +1,16 @@
 // ── QUADRANT MATH ──
 
-export function calcQuadrants(entry, sl, tp, direction = 'long') {
+export function calcQuadrants(entry, sl, tp, direction = 'long', splits = 4) {
   const e = parseFloat(entry), s = parseFloat(sl), t = parseFloat(tp)
   if (isNaN(e) || isNaN(s) || isNaN(t)) return null
   const slDist = direction === 'long' ? e - s : s - e
   if (slDist <= 0) return null
   const tpDist = direction === 'long' ? t - e : e - t
   if (tpDist <= 0) return null
-  const zone = slDist / 4
-  return [0, 1, 2, 3].map((i) => {
+  const count = parseInt(splits) || 4
+  const zone = slDist / count
+  const indices = Array.from({ length: count }, (_, i) => i)
+  return indices.map((i) => {
     const qEntry = direction === 'long' ? e - zone * i : e + zone * i
     const qSL = direction === 'long' ? qEntry - zone : qEntry + zone
     const qReward = direction === 'long' ? t - qEntry : qEntry - t
