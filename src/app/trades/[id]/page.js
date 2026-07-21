@@ -30,6 +30,7 @@ export default function TradeDetail() {
 
   // Outcome selections per quadrant
   const [selections, setSelections] = useState({ Q1: null, Q2: null, Q3: null, Q4: null })
+  const [commissions, setCommissions] = useState({ Q1: '', Q2: '', Q3: '', Q4: '' })
   const [submitted, setSubmitted] = useState(false)
 
   useEffect(() => { if (id) load() }, [id])
@@ -53,8 +54,13 @@ export default function TradeDetail() {
     // Pre-fill selections if already logged
     if (outs?.length > 0) {
       const sel = {}
-      outs.forEach(o => { sel[o.quadrant_label] = o.result })
+      const comm = {}
+      outs.forEach(o => {
+        sel[o.quadrant_label] = o.result
+        comm[o.quadrant_label] = o.commission != null ? String(o.commission) : ''
+      })
       setSelections(sel)
+      setCommissions(comm)
       setSubmitted(true)
     }
     setLoading(false)
@@ -70,26 +76,29 @@ export default function TradeDetail() {
   const dec = trade ? (detectDecimals(trade.entry) || 3) : 3
 
   async function submitOutcomes() {
-    const allSelected = ['Q1','Q2','Q3','Q4'].every(ql => selections[ql] !== null)
+    const activeLabels = quadrants.map(q => q.label)
+    const allSelected = activeLabels.every(ql => selections[ql] !== null)
     if (!allSelected || !trade) return
     setSaving(true)
 
     const outcomeInserts = []
     const quadrantUpdates = []
 
-    for (let i = 0; i < 4; i++) {
-      const ql = `Q${i + 1}`
+    for (let i = 0; i < quadrants.length; i++) {
+      const q = quadrants[i]
+      const ql = q.label
       const result = selections[ql]
-      const q = quadrants.find(x => x.label === ql)
-      if (!q) continue
-
       const tq = tradeQuads[i]
+      if (!tq) continue
+
       const riskAmt = getRiskAmount(q.current_balance, q.risk_state)
       const reward = trade.direction === 'long'
         ? trade.tp - tq.entry
         : tq.entry - trade.tp
       const rr = reward / trade.zone_size
-      const pnl = calcPnl(riskAmt, rr, result)
+      const grossPnl = calcPnl(riskAmt, rr, result)
+      const commission = parseFloat(commissions[ql]) || 0
+      const pnl = result === 'missed' ? 0 : grossPnl - commission
       const lotSize = calcLotSize(riskAmt, trade.zone_size, 'forex_major')
 
       outcomeInserts.push({
@@ -100,6 +109,7 @@ export default function TradeDetail() {
         lot_size: lotSize,
         risk_amount: riskAmt,
         pnl,
+        commission,
         rr_achieved: result === 'win' ? rr : result === 'loss' ? -1 : 0,
       })
 
@@ -128,6 +138,7 @@ export default function TradeDetail() {
   }
 
   const totalPnl = outcomes.reduce((s, o) => s + (o.pnl || 0), 0)
+  const totalCommission = outcomes.reduce((s, o) => s + (o.commission || 0), 0)
 
   if (loading) return <div style={{ background: C.black, minHeight: '100vh' }}><Nav /><div style={{ padding: 40, fontFamily: mono, fontSize: 11, color: C.muted }}>Loading...</div></div>
   if (!trade) return <div style={{ background: C.black, minHeight: '100vh' }}><Nav /><div style={{ padding: 40, fontFamily: mono, fontSize: 11, color: C.danger }}>Trade not found.</div></div>
@@ -151,10 +162,15 @@ export default function TradeDetail() {
           </div>
           {submitted && (
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontFamily: mono, fontSize: 9, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Total P&L</div>
+              <div style={{ fontFamily: mono, fontSize: 9, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Net P&L</div>
               <div style={{ fontFamily: syne, fontSize: 24, fontWeight: 700, color: totalPnl >= 0 ? C.success : C.danger }}>
                 {totalPnl >= 0 ? '+' : ''}{fmtCurrency(totalPnl)}
               </div>
+              {totalCommission > 0 && (
+                <div style={{ fontFamily: mono, fontSize: 9, color: C.muted, marginTop: 3 }}>
+                  commission: -{fmtCurrency(totalCommission)}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -223,23 +239,27 @@ export default function TradeDetail() {
 
                 {/* Outcome result or selector */}
                 {submitted && outcome ? (
-                  <div style={{
-                    borderTop: `1px solid ${Q_BORDER[i]}`, paddingTop: 10,
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                  }}>
-                    <Badge type={outcome.result === 'win' ? 'green' : outcome.result === 'loss' ? 'danger' : 'default'}>
-                      {outcome.result === 'win' ? '✓ Win' : outcome.result === 'loss' ? '✗ Loss' : '— Missed'}
-                    </Badge>
-                    {outcome.result !== 'missed' && (
-                      <span style={{ fontFamily: mono, fontSize: 12, color: outcome.pnl >= 0 ? C.success : C.danger, fontWeight: 600 }}>
-                        {outcome.pnl >= 0 ? '+' : ''}{fmtCurrency(outcome.pnl)}
-                      </span>
+                  <div style={{ borderTop: `1px solid ${Q_BORDER[i]}`, paddingTop: 10 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: outcome.commission > 0 ? 6 : 0 }}>
+                      <Badge type={outcome.result === 'win' ? 'green' : outcome.result === 'loss' ? 'danger' : 'default'}>
+                        {outcome.result === 'win' ? '✓ Win' : outcome.result === 'loss' ? '✗ Loss' : '— Missed'}
+                      </Badge>
+                      {outcome.result !== 'missed' && (
+                        <span style={{ fontFamily: mono, fontSize: 12, color: outcome.pnl >= 0 ? C.success : C.danger, fontWeight: 600 }}>
+                          {outcome.pnl >= 0 ? '+' : ''}{fmtCurrency(outcome.pnl)}
+                        </span>
+                      )}
+                    </div>
+                    {outcome.commission > 0 && (
+                      <div style={{ fontFamily: mono, fontSize: 9, color: C.muted }}>
+                        commission paid: -{fmtCurrency(outcome.commission)}
+                      </div>
                     )}
                   </div>
                 ) : !submitted ? (
                   <div style={{ borderTop: `1px solid ${Q_BORDER[i]}`, paddingTop: 10 }}>
                     <div style={{ fontFamily: mono, fontSize: 8, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>outcome</div>
-                    <div style={{ display: 'flex', gap: 6 }}>
+                    <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
                       {OUTCOMES.map(o => (
                         <button key={o.value} onClick={() => setSelections(s => ({ ...s, [tq.label]: o.value }))} style={{
                           flex: 1, fontFamily: mono, fontSize: 10, padding: '6px 4px',
@@ -257,6 +277,24 @@ export default function TradeDetail() {
                         }}>{o.label}</button>
                       ))}
                     </div>
+                    <div>
+                      <div style={{ fontFamily: mono, fontSize: 8, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>commission (optional)</div>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={commissions[tq.label]}
+                        onChange={e => setCommissions(s => ({ ...s, [tq.label]: e.target.value }))}
+                        style={{
+                          width: '100%', boxSizing: 'border-box',
+                          background: 'rgba(255,255,255,0.04)', border: `1px solid ${Q_BORDER[i]}`,
+                          borderRadius: 3, padding: '6px 10px',
+                          fontFamily: mono, fontSize: 11, color: C.text,
+                          outline: 'none',
+                        }}
+                      />
+                    </div>
                   </div>
                 ) : null}
               </div>
@@ -268,13 +306,13 @@ export default function TradeDetail() {
         {!submitted && (
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 4, padding: 20 }}>
             <div style={{ fontFamily: mono, fontSize: 10, color: C.muted, marginBottom: 14 }}>
-              Select an outcome for each quadrant, then submit to update account balances and risk states.
+              Select an outcome for each zone, add commission if applicable, then submit to update account balances.
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button
                 onClick={submitOutcomes}
-                disabled={!['Q1','Q2','Q3','Q4'].every(ql => selections[ql]) || saving}
-                style={{ ...btnPrimary, opacity: (!['Q1','Q2','Q3','Q4'].every(ql => selections[ql]) || saving) ? 0.4 : 1 }}
+                disabled={!quadrants.every(q => selections[q.label]) || saving}
+                style={{ ...btnPrimary, opacity: (!quadrants.every(q => selections[q.label]) || saving) ? 0.4 : 1 }}
               >
                 {saving ? 'Saving...' : 'Submit Outcomes →'}
               </button>

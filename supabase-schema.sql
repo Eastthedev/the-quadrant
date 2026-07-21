@@ -62,6 +62,7 @@ create table trade_outcomes (
   lot_size numeric,
   risk_amount numeric,
   pnl numeric default 0,
+  commission numeric(12,4) default 0,
   rr_achieved numeric,
   created_at timestamptz default now()
 );
