@@ -94,6 +94,7 @@ export default function AccountDetail() {
                   const qPnl = qOutcomes.reduce((s, o) => s + (o.pnl || 0), 0)
                   const riskAmt = q.current_balance * (q.risk_state === 'green' ? 0.01 : 0.005)
                   const pctChange = ((q.current_balance - q.starting_balance) / q.starting_balance * 100)
+                  const isDown = q.current_balance < q.starting_balance
 
                   return (
                     <div key={q.id} style={{
@@ -108,7 +109,7 @@ export default function AccountDetail() {
                       </div>
                       <div style={{ marginBottom: 12 }}>
                         <div style={{ fontFamily: mono, fontSize: 9, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Balance</div>
-                        <div style={{ fontFamily: syne, fontSize: 18, fontWeight: 700, color: qPnl >= 0 ? C.text : C.danger }}>{fmtCurrency(q.current_balance)}</div>
+                        <div style={{ fontFamily: syne, fontSize: 18, fontWeight: 700, color: isDown ? C.danger : C.text }}>{fmtCurrency(q.current_balance)}</div>
                         <div style={{ fontFamily: mono, fontSize: 9, color: pctChange >= 0 ? C.success : C.danger }}>{pctChange >= 0 ? '+' : ''}{pctChange.toFixed(2)}%</div>
                       </div>
                       <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
