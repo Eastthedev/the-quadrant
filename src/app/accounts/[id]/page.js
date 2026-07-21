@@ -45,10 +45,10 @@ export default function AccountDetail() {
     </div>
   )
 
-  const accPnl = outcomes.filter(o => quadrants.some(q => q.id === o.quadrant_id))
-    .reduce((s, o) => s + (o.pnl || 0), 0)
-  const currentBalance = account.total_size + accPnl
-  const drawdown = (currentBalance - account.total_size) / account.total_size
+  // Source of truth: sum live quadrant balances (captures both trade outcomes AND manual adjustments)
+  const currentBalance = quadrants.reduce((s, q) => s + parseFloat(q.current_balance || 0), 0)
+  const accPnl = currentBalance - account.total_size
+  const drawdown = account.total_size > 0 ? (currentBalance - account.total_size) / account.total_size : 0
   const quadColors = ['#c9a84c', '#b48c3c', '#8c6428', '#5a3c14']
 
   return (

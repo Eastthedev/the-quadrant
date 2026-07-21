@@ -78,10 +78,9 @@ export default function Dashboard() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 12, marginBottom: 32 }}>
             {accounts.map(acc => {
               const accQuads = quadrants.filter(q => q.account_id === acc.id)
-              const accOutcomes = outcomes.filter(o => accQuads.some(q => q.id === o.quadrant_id))
-              const accPnl = accOutcomes.reduce((s, o) => s + (o.pnl || 0), 0)
-              const currentBalance = acc.total_size + accPnl
-              const drawdownPct = ((currentBalance - acc.total_size) / acc.total_size)
+              const currentBalance = accQuads.reduce((s, q) => s + parseFloat(q.current_balance || 0), 0)
+              const accPnl = currentBalance - acc.total_size
+              const drawdownPct = acc.total_size > 0 ? (currentBalance - acc.total_size) / acc.total_size : 0
 
               return (
                 <Link key={acc.id} href={`/accounts/${acc.id}`} style={{ textDecoration: 'none' }}>

@@ -156,10 +156,9 @@ export default function AccountsPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {accounts.map(acc => {
               const accQuads = quadrants.filter(q => q.account_id === acc.id)
-              const accOutcomes = outcomes.filter(o => accQuads.some(q => q.id === o.quadrant_id))
-              const accPnl = accOutcomes.reduce((s, o) => s + (o.pnl || 0), 0)
-              const currentBalance = acc.total_size + accPnl
-              const pct = ((currentBalance - acc.total_size) / acc.total_size * 100)
+              const currentBalance = accQuads.reduce((s, q) => s + parseFloat(q.current_balance || 0), 0)
+              const accPnl = currentBalance - acc.total_size
+              const pct = acc.total_size > 0 ? (currentBalance - acc.total_size) / acc.total_size * 100 : 0
               const splitsCount = acc.splits || (accQuads.length === 3 ? 3 : 4)
               const quadLabels = splitsCount === 3 ? ['Q1', 'Q2', 'Q3'] : ['Q1', 'Q2', 'Q3', 'Q4']
               const quadColors = ['#c9a84c', '#b48c3c', '#8c6428', '#5a3c14']
