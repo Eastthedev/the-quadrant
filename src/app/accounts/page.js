@@ -16,7 +16,7 @@ export default function AccountsPage() {
   const [saving, setSaving] = useState(false)
 
   const [form, setForm] = useState({
-    name: '', type: 'single', total_size: '', broker: '', currency: 'USD'
+    name: '', type: 'single', splits: 4, total_size: '', broker: '', currency: 'USD'
   })
 
   useEffect(() => { load() }, [])
@@ -37,17 +37,23 @@ export default function AccountsPage() {
   async function createAccount() {
     if (!form.name || !form.total_size) return
     setSaving(true)
+    const splitsCount = parseInt(form.splits) || 4
     const size = parseFloat(form.total_size)
-    const virtualSize = form.type === 'single' ? size / 4 : size
+    const virtualSize = form.type === 'single' ? size / splitsCount : size
 
     const { data: acc, error } = await supabase.from('accounts').insert({
-      name: form.name, type: form.type,
-      total_size: size, broker: form.broker, currency: form.currency,
+      name: form.name,
+      type: form.type,
+      splits: splitsCount,
+      total_size: size,
+      broker: form.broker,
+      currency: form.currency,
     }).select().single()
 
     if (acc) {
-      // Create 4 quadrants
-      const quadsToInsert = ['Q1', 'Q2', 'Q3', 'Q4'].map(label => ({
+      // Create sub-zones/quadrants
+      const labels = splitsCount === 3 ? ['Q1', 'Q2', 'Q3'] : ['Q1', 'Q2', 'Q3', 'Q4']
+      const quadsToInsert = labels.map(label => ({
         account_id: acc.id,
         label,
         starting_balance: virtualSize,
@@ -57,7 +63,7 @@ export default function AccountsPage() {
       }))
       await supabase.from('quadrants').insert(quadsToInsert)
       setShowForm(false)
-      setForm({ name: '', type: 'single', total_size: '', broker: '', currency: 'USD' })
+      setForm({ name: '', type: 'single', splits: 4, total_size: '', broker: '', currency: 'USD' })
       await load()
     }
     setSaving(false)
@@ -96,13 +102,21 @@ export default function AccountsPage() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginBottom: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 14, marginBottom: 20 }}>
+              <div>
+                <div style={{ fontFamily: mono, fontSize: 9, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 6 }}>Account Structure</div>
+                <select style={selectStyle} value={form.splits}
+                  onChange={e => setForm(f => ({ ...f, splits: parseInt(e.target.value) }))}>
+                  <option value={4}>Q4 — 4 Quadrants (Divided by 4)</option>
+                  <option value={3}>⚡ Q3 — 3 Tri-Zones (Divided by 3)</option>
+                </select>
+              </div>
               <div>
                 <div style={{ fontFamily: mono, fontSize: 9, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 6 }}>Account Type</div>
                 <select style={selectStyle} value={form.type}
                   onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-                  <option value="single">Single Account (4 virtual quadrants)</option>
-                  <option value="multi">Multi Account (4 real accounts)</option>
+                  <option value="single">Single Account ({form.splits === 3 ? '3 virtual zones' : '4 virtual quadrants'})</option>
+                  <option value="multi">Multi Account ({form.splits === 3 ? '3 real accounts' : '4 real accounts'})</option>
                 </select>
               </div>
               <div>
@@ -123,7 +137,7 @@ export default function AccountsPage() {
 
             {form.type === 'single' && form.total_size && (
               <div style={{ background: C.goldDim, border: `1px solid ${C.goldBorder}`, borderRadius: 3, padding: '10px 14px', marginBottom: 16, fontFamily: mono, fontSize: 11, color: C.secondary }}>
-                Each virtual quadrant = {fmtCurrency(parseFloat(form.total_size) / 4)} · 1% risk = {fmtCurrency(parseFloat(form.total_size) / 4 * 0.01)} per trade
+                Each virtual {form.splits === 3 ? 'tri-zone' : 'quadrant'} = {fmtCurrency(parseFloat(form.total_size) / form.splits)} · 1% risk = {fmtCurrency(parseFloat(form.total_size) / form.splits * 0.01)} per trade
               </div>
             )}
 
@@ -146,6 +160,8 @@ export default function AccountsPage() {
               const accPnl = accOutcomes.reduce((s, o) => s + (o.pnl || 0), 0)
               const currentBalance = acc.total_size + accPnl
               const pct = ((currentBalance - acc.total_size) / acc.total_size * 100)
+              const splitsCount = acc.splits || (accQuads.length === 3 ? 3 : 4)
+              const quadLabels = splitsCount === 3 ? ['Q1', 'Q2', 'Q3'] : ['Q1', 'Q2', 'Q3', 'Q4']
               const quadColors = ['#c9a84c', '#b48c3c', '#8c6428', '#5a3c14']
 
               return (
@@ -154,9 +170,12 @@ export default function AccountsPage() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
                       <div>
                         <div style={{ fontFamily: syne, fontSize: 17, fontWeight: 700, color: C.text, marginBottom: 6 }}>{acc.name}</div>
-                        <div style={{ display: 'flex', gap: 8 }}>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                           <Badge type={acc.type === 'single' ? 'gold' : 'default'}>
                             {acc.type === 'single' ? 'Single' : 'Multi'}
+                          </Badge>
+                          <Badge type={splitsCount === 3 ? 'gold' : 'default'}>
+                            {splitsCount === 3 ? '⚡ Q3 Mode (3 Zones)' : 'Q4 Mode (4 Quads)'}
                           </Badge>
                           <span style={{ fontFamily: mono, fontSize: 10, color: C.muted }}>Starting: {fmtCurrency(acc.total_size)}</span>
                           {acc.broker && <span style={{ fontFamily: mono, fontSize: 10, color: C.muted }}>· {acc.broker}</span>}
@@ -171,8 +190,8 @@ export default function AccountsPage() {
                         </div>
                       </div>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-                      {['Q1', 'Q2', 'Q3', 'Q4'].map((ql, i) => {
+                    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${splitsCount}, 1fr)`, gap: 8 }}>
+                      {quadLabels.map((ql, i) => {
                         const q = accQuads.find(x => x.label === ql)
                         return (
                           <div key={ql} style={{ background: C.surface2, borderRadius: 3, padding: '10px 12px' }}>

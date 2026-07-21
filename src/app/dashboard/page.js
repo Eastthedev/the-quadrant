@@ -90,44 +90,55 @@ export default function Dashboard() {
                     borderRadius: 4, padding: '22px', cursor: 'pointer',
                     transition: 'border-color 0.15s',
                   }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
-                      <div>
-                        <div style={{ fontFamily: syne, fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 4 }}>{acc.name}</div>
-                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                          <Badge type={acc.type === 'single' ? 'gold' : 'default'}>
-                            {acc.type === 'single' ? 'Single Account' : 'Multi Account'}
-                          </Badge>
-                          {acc.broker && <span style={{ fontFamily: mono, fontSize: 10, color: C.muted }}>{acc.broker}</span>}
-                        </div>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontFamily: syne, fontSize: 20, fontWeight: 700, color: accPnl >= 0 ? C.success : C.danger }}>
-                          {fmtCurrency(currentBalance)}
-                        </div>
-                        <div style={{ fontFamily: mono, fontSize: 10, color: drawdownPct >= 0 ? C.success : C.danger }}>
-                          {drawdownPct >= 0 ? '+' : ''}{(drawdownPct * 100).toFixed(2)}%
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Quadrant states */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
-                      {['Q1', 'Q2', 'Q3', 'Q4'].map((ql, i) => {
-                        const q = accQuads.find(x => x.label === ql)
-                        const colors = ['#c9a84c', '#b48c3c', '#8c6428', '#5a3c14']
-                        return (
-                          <div key={ql} style={{ background: C.surface2, borderRadius: 3, padding: '8px 10px' }}>
-                            <div style={{ fontFamily: mono, fontSize: 9, color: colors[i], marginBottom: 4 }}>{ql}</div>
-                            <div style={{ fontFamily: mono, fontSize: 10, color: q?.risk_state === 'green' ? C.success : C.warn }}>
-                              {q?.risk_state === 'green' ? '● 1%' : '● 0.5%'}
+                    {(() => {
+                      const splitsCount = acc.splits || (accQuads.length === 3 ? 3 : 4)
+                      const quadLabels = splitsCount === 3 ? ['Q1', 'Q2', 'Q3'] : ['Q1', 'Q2', 'Q3', 'Q4']
+                      return (
+                        <>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+                            <div>
+                              <div style={{ fontFamily: syne, fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 4 }}>{acc.name}</div>
+                              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                                <Badge type={acc.type === 'single' ? 'gold' : 'default'}>
+                                  {acc.type === 'single' ? 'Single Account' : 'Multi Account'}
+                                </Badge>
+                                <Badge type={splitsCount === 3 ? 'gold' : 'default'}>
+                                  {splitsCount === 3 ? '⚡ Q3 Mode' : 'Q4 Mode'}
+                                </Badge>
+                                {acc.broker && <span style={{ fontFamily: mono, fontSize: 10, color: C.muted }}>{acc.broker}</span>}
+                              </div>
                             </div>
-                            <div style={{ fontFamily: mono, fontSize: 9, color: C.muted, marginTop: 2 }}>
-                              {q ? fmtCurrency(q.current_balance) : '—'}
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontFamily: syne, fontSize: 20, fontWeight: 700, color: accPnl >= 0 ? C.success : C.danger }}>
+                                {fmtCurrency(currentBalance)}
+                              </div>
+                              <div style={{ fontFamily: mono, fontSize: 10, color: drawdownPct >= 0 ? C.success : C.danger }}>
+                                {drawdownPct >= 0 ? '+' : ''}{(drawdownPct * 100).toFixed(2)}%
+                              </div>
                             </div>
                           </div>
-                        )
-                      })}
-                    </div>
+
+                          {/* Quadrant / Tri-zone states */}
+                          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${splitsCount}, 1fr)`, gap: 6 }}>
+                            {quadLabels.map((ql, i) => {
+                              const q = accQuads.find(x => x.label === ql)
+                              const colors = ['#c9a84c', '#b48c3c', '#8c6428', '#5a3c14']
+                              return (
+                                <div key={ql} style={{ background: C.surface2, borderRadius: 3, padding: '8px 10px' }}>
+                                  <div style={{ fontFamily: mono, fontSize: 9, color: colors[i], marginBottom: 4 }}>{ql}</div>
+                                  <div style={{ fontFamily: mono, fontSize: 10, color: q?.risk_state === 'green' ? C.success : C.warn }}>
+                                    {q?.risk_state === 'green' ? '● 1%' : '● 0.5%'}
+                                  </div>
+                                  <div style={{ fontFamily: mono, fontSize: 9, color: C.muted, marginTop: 2 }}>
+                                    {q ? fmtCurrency(q.current_balance) : '—'}
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </>
+                      )
+                    })()}
                   </div>
                 </Link>
               )

@@ -57,69 +57,77 @@ export default function AccountDetail() {
       <div style={{ maxWidth: 1000, margin: '0 auto', padding: '32px 24px' }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
-          <div>
-            <Link href="/accounts" style={{ fontFamily: mono, fontSize: 10, color: C.muted, textDecoration: 'none', letterSpacing: '0.08em' }}>← Accounts</Link>
-            <h1 style={{ fontFamily: syne, fontSize: 28, fontWeight: 800, letterSpacing: '-0.02em', margin: '10px 0 8px' }}>{account.name}</h1>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <Badge type={account.type === 'single' ? 'gold' : 'default'}>{account.type === 'single' ? 'Single Account' : 'Multi Account'}</Badge>
-              {account.broker && <Badge type="default">{account.broker}</Badge>}
-            </div>
-          </div>
-          <Link href={`/trades/new?account=${id}`} style={{
-            background: C.gold, color: C.black, border: 'none', borderRadius: 3,
-            padding: '10px 20px', fontFamily: mono, fontSize: 12, fontWeight: 600,
-            letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer', textDecoration: 'none'
-          }}>+ New Trade</Link>
-        </div>
-
-        {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 28 }}>
-          <StatCard label="Current Balance" value={fmtCurrency(currentBalance)} color={accPnl >= 0 ? C.success : C.danger} sub={`Started: ${fmtCurrency(account.total_size)}`} />
-          <StatCard label="Total P&L" value={(accPnl >= 0 ? '+' : '') + fmtCurrency(accPnl)} color={accPnl >= 0 ? C.success : C.danger} sub={`${(drawdown * 100).toFixed(2)}% change`} />
-          <StatCard label="Total Trades" value={trades.length} color={C.text} sub={`${trades.filter(t => t.status === 'open').length} open`} />
-          <StatCard label="Account Type" value={account.type === 'single' ? '1 Real' : '4 Real'} color={C.text} sub={account.type === 'single' ? '4 virtual quadrants' : '4 separate accounts'} />
-        </div>
-
-        {/* Quadrant breakdown */}
-        <SectionTitle>Quadrant States</SectionTitle>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 28 }}>
-          {quadrants.map((q, i) => {
-            const qOutcomes = outcomes.filter(o => o.quadrant_id === q.id)
-            const qPnl = qOutcomes.reduce((s, o) => s + (o.pnl || 0), 0)
-            const riskAmt = q.current_balance * (q.risk_state === 'green' ? 0.01 : 0.005)
-            const pctChange = ((q.current_balance - q.starting_balance) / q.starting_balance * 100)
-
-            return (
-              <div key={q.id} style={{
-                background: C.surface, border: `1px solid ${i === 0 ? C.goldBorder : C.border}`,
-                borderRadius: 4, padding: '18px',
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                  <span style={{ fontFamily: mono, fontSize: 13, fontWeight: 600, color: quadColors[i] }}>{q.label}</span>
-                  <span style={{ fontFamily: mono, fontSize: 10, color: q.risk_state === 'green' ? C.success : C.warn }}>
-                    {q.risk_state === 'green' ? '● Green' : '● Recovery'}
-                  </span>
-                </div>
-                <div style={{ marginBottom: 12 }}>
-                  <div style={{ fontFamily: mono, fontSize: 9, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Balance</div>
-                  <div style={{ fontFamily: syne, fontSize: 18, fontWeight: 700, color: qPnl >= 0 ? C.text : C.danger }}>{fmtCurrency(q.current_balance)}</div>
-                  <div style={{ fontFamily: mono, fontSize: 9, color: pctChange >= 0 ? C.success : C.danger }}>{pctChange >= 0 ? '+' : ''}{pctChange.toFixed(2)}%</div>
-                </div>
-                <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-                  <div>
-                    <div style={{ fontFamily: mono, fontSize: 9, color: C.muted, marginBottom: 2 }}>Next Risk</div>
-                    <div style={{ fontFamily: mono, fontSize: 12, color: quadColors[i] }}>{fmtCurrency(riskAmt)}</div>
-                  </div>
-                  <div>
-                    <div style={{ fontFamily: mono, fontSize: 9, color: C.muted, marginBottom: 2 }}>Record</div>
-                    <div style={{ fontFamily: mono, fontSize: 12, color: C.text }}>{q.wins}W · {q.losses}L</div>
+        {(() => {
+          const splitsCount = account.splits || (quadrants.length === 3 ? 3 : 4)
+          return (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
+                <div>
+                  <Link href="/accounts" style={{ fontFamily: mono, fontSize: 10, color: C.muted, textDecoration: 'none', letterSpacing: '0.08em' }}>← Accounts</Link>
+                  <h1 style={{ fontFamily: syne, fontSize: 28, fontWeight: 800, letterSpacing: '-0.02em', margin: '10px 0 8px' }}>{account.name}</h1>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <Badge type={account.type === 'single' ? 'gold' : 'default'}>{account.type === 'single' ? 'Single Account' : 'Multi Account'}</Badge>
+                    <Badge type={splitsCount === 3 ? 'gold' : 'default'}>{splitsCount === 3 ? '⚡ Q3 Mode (3 Zones)' : 'Q4 Mode (4 Quads)'}</Badge>
+                    {account.broker && <Badge type="default">{account.broker}</Badge>}
                   </div>
                 </div>
+                <Link href={`/trades/new?account=${id}`} style={{
+                  background: C.gold, color: C.black, border: 'none', borderRadius: 3,
+                  padding: '10px 20px', fontFamily: mono, fontSize: 12, fontWeight: 600,
+                  letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer', textDecoration: 'none'
+                }}>+ New Trade</Link>
               </div>
-            )
-          })}
-        </div>
+
+              {/* Stats */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 28 }}>
+                <StatCard label="Current Balance" value={fmtCurrency(currentBalance)} color={accPnl >= 0 ? C.success : C.danger} sub={`Started: ${fmtCurrency(account.total_size)}`} />
+                <StatCard label="Total P&L" value={(accPnl >= 0 ? '+' : '') + fmtCurrency(accPnl)} color={accPnl >= 0 ? C.success : C.danger} sub={`${(drawdown * 100).toFixed(2)}% change`} />
+                <StatCard label="Total Trades" value={trades.length} color={C.text} sub={`${trades.filter(t => t.status === 'open').length} open`} />
+                <StatCard label="Account Structure" value={splitsCount === 3 ? 'Q3 Mode' : 'Q4 Mode'} color={C.text} sub={account.type === 'single' ? `${splitsCount} virtual ${splitsCount === 3 ? 'zones' : 'quadrants'}` : `${splitsCount} separate accounts`} />
+              </div>
+
+              {/* Quadrant breakdown */}
+              <SectionTitle>{splitsCount === 3 ? 'Tri-Zone States' : 'Quadrant States'}</SectionTitle>
+              <div style={{ display: 'grid', gridTemplateColumns: `repeat(${splitsCount}, 1fr)`, gap: 10, marginBottom: 28 }}>
+                {quadrants.map((q, i) => {
+                  const qOutcomes = outcomes.filter(o => o.quadrant_id === q.id)
+                  const qPnl = qOutcomes.reduce((s, o) => s + (o.pnl || 0), 0)
+                  const riskAmt = q.current_balance * (q.risk_state === 'green' ? 0.01 : 0.005)
+                  const pctChange = ((q.current_balance - q.starting_balance) / q.starting_balance * 100)
+
+                  return (
+                    <div key={q.id} style={{
+                      background: C.surface, border: `1px solid ${i === 0 ? C.goldBorder : C.border}`,
+                      borderRadius: 4, padding: '18px',
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                        <span style={{ fontFamily: mono, fontSize: 13, fontWeight: 600, color: quadColors[i % quadColors.length] }}>{q.label}</span>
+                        <span style={{ fontFamily: mono, fontSize: 10, color: q.risk_state === 'green' ? C.success : C.warn }}>
+                          {q.risk_state === 'green' ? '● Green' : '● Recovery'}
+                        </span>
+                      </div>
+                      <div style={{ marginBottom: 12 }}>
+                        <div style={{ fontFamily: mono, fontSize: 9, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Balance</div>
+                        <div style={{ fontFamily: syne, fontSize: 18, fontWeight: 700, color: qPnl >= 0 ? C.text : C.danger }}>{fmtCurrency(q.current_balance)}</div>
+                        <div style={{ fontFamily: mono, fontSize: 9, color: pctChange >= 0 ? C.success : C.danger }}>{pctChange >= 0 ? '+' : ''}{pctChange.toFixed(2)}%</div>
+                      </div>
+                      <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                        <div>
+                          <div style={{ fontFamily: mono, fontSize: 9, color: C.muted, marginBottom: 2 }}>Next Risk</div>
+                          <div style={{ fontFamily: mono, fontSize: 12, color: quadColors[i % quadColors.length] }}>{fmtCurrency(riskAmt)}</div>
+                        </div>
+                        <div>
+                          <div style={{ fontFamily: mono, fontSize: 9, color: C.muted, marginBottom: 2 }}>Record</div>
+                          <div style={{ fontFamily: mono, fontSize: 12, color: C.text }}>{q.wins}W · {q.losses}L</div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          )
+        })()}
 
         {/* Trade history */}
         <SectionTitle>Trade History</SectionTitle>

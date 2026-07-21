@@ -8,6 +8,7 @@ create table accounts (
   id uuid default gen_random_uuid() primary key,
   name text not null,
   type text not null check (type in ('single', 'multi')),
+  splits integer default 4 check (splits in (3, 4)),
   total_size numeric not null,
   currency text default 'USD',
   broker text,
