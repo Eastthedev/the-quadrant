@@ -5,6 +5,7 @@ import { C, mono, syne } from '../lib/theme'
 
 const links = [
   { href: '/dashboard', label: 'Dashboard' },
+  { href: '/calculator', label: 'Calculator' },
   { href: '/accounts', label: 'Accounts' },
   { href: '/trades', label: 'Trades' },
 ]

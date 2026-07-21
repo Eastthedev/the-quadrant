@@ -5,6 +5,7 @@ import Nav from '../components/Nav'
 import { StatCard, Badge, SectionTitle, EmptyState, QuadrantPill } from '../components/UI'
 import { C, mono, syne, sans, btnPrimary } from '../lib/theme'
 import { fmtCurrency, fmtPct } from '../lib/quadrant'
+import QuadrantCalculator from '../components/QuadrantCalculator'
 import Link from 'next/link'
 
 export default function Dashboard() {
@@ -167,6 +168,19 @@ export default function Dashboard() {
             </div>
           </>
         )}
+
+        {/* Signal Splitter & Q3 Calculator */}
+        <div style={{ marginTop: 40, borderTop: `1px solid ${C.border}`, paddingTop: 32 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <SectionTitle>Signal Splitter & Q3 Calculator</SectionTitle>
+            <span style={{ fontFamily: mono, fontSize: 10, color: C.gold, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              ⚡ Q3 (3-Split) & Q4 Mode
+            </span>
+          </div>
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6 }}>
+            <QuadrantCalculator />
+          </div>
+        </div>
       </div>
     </div>
   )
